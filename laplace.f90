@@ -13,7 +13,7 @@ program laplace
     implicit none
     integer :: i, j, iteracoes, maxIter
     integer, parameter :: nX = 100, nY = 100
-    real :: err, tol, maxErro, dX, dY, temp
+    real :: err, tol, maxErro, temp
     real :: L, W
     real, dimension(nX, nY) :: matriz = 0.0
 
@@ -24,9 +24,7 @@ program laplace
 
     ! Malha uniforme
     L = 1.0
-    W = 1.0
-    dX = W / nX   
-    dY = L / nY     
+    W = 1.0 
 
     ! Borda superior
     do i = 1, nX
