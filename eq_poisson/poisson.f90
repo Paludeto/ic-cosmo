@@ -37,12 +37,11 @@ program poisson
     u = 0.0
 
     ! Imposição das condições de contorno de Dirichlet
-
     do j = 1, nY
-        u(nX, j) = y(j) - y(j)**2 ! = y - y^2
+        u(nX, j) = y(j) - y(j)**2 ! = y - y²
     end do
     do i = 1, nX
-        u(i, nY) = x(i)**2 - x(i)
+        u(i, nY) = x(i)**2 - x(i) ! = x² - x
     end do 
 
     erro = 1.0
