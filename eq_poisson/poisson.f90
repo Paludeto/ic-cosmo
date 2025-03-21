@@ -1,9 +1,6 @@
 ! Condições de contorno de Dirchlet:
 ! L = W = 1 
-! u(x, 0) = u(x, 1) = u(0, y) = u(1, y) = 0
-! Equação discretizada para malhas uniformes: 
-! u(i, j) = (u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1)) / 4.0 - 2.0 * (y - x)
-
+! u(1, y) =  y - y², u(x, 1) =  x² - x
 
 program poisson
 
@@ -35,6 +32,11 @@ program poisson
 
     ! Inicializa a matriz u com 0, calcula o termo fonte f(x, y) para cada ponto da malha 
     u = 0.0
+    do i = 1, nX
+        do j = 1, nY
+            f(i, j) =  2.d0 * (y(j) - x(i))
+        end do
+    end do
 
     ! Imposição das condições de contorno de Dirichlet
     do j = 1, nY
@@ -48,7 +50,7 @@ program poisson
     iteracoes = 0
 
     ! Cria o arquivo para armazenar o resíduo por iteração
-    open(unit=20, file="residuo.dat", status="replace")
+    open(unit=10, file="matlab/dat/residuo.dat", status="replace")
 
     ! Gauss-Seidel
     do while (erro > tol)
@@ -66,23 +68,31 @@ program poisson
         iteracoes = iteracoes + 1
 
         ! Escreve iteração + erro atual em um arquivo .dat
-        write(20, '(I6, ES25.8)') iteracoes, erro
+        write(10, '(I6, ES25.8)') iteracoes, erro
 
     end do 
 
-    close(20)
+    close(10)
 
     write(*, '(A, I6, A, ES15.8)') "Convergiu em ", iteracoes, " iterações, com erro de ", erro
     print *
 
     ! Geração do arquivo "matriz.dat"
-    open(unit=10, file="matriz.dat", status="replace")
+    open(unit=20, file="matlab/dat/matriz.dat", status="replace")
         do i = nY, 1, -1  ! Escrevendo de cima para baixo, convenção MatLab
             do j = 1, nX
-                write(10, '(I4, I4, F10.5)') j, nY - i + 1, u(i, j)
+                write(20, '(I4, I4, ES25.10E3)') j, nY - i + 1, u(i, j)
             end do
-            write(10, *)
+            write(20, *)
         end do
-    close(10)
+    close(20)
+
+    ! Escrevendo a linha central (nX / 2) da matriz u em um .dat
+    open(unit=30, file="matlab/dat/l_central.dat", status="replace")
+        do j = nY, 1, -1
+            write(30, '(F10.5, ES25.10E3)') real(j - 1) / real(nY - 1), u(int((nX / 2.0)) + 1, j)
+        end do 
+        write(30, *)
+    close(30)
 
 end program poisson

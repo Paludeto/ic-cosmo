@@ -68,14 +68,8 @@ program laplace
 
     end do
 
-    ! Impressão da matriz
-    print *, "Matriz:"
-    do j = nY, 1, -1
-         write(*,*) (matriz(i, j), i = 1, nX)
-    end do
-
     ! Geração do arquivo "matriz.dat"
-    open(unit=10, file="matriz.dat", status="replace")
+    open(unit=10, file="matlab/dat/matriz.dat", status="replace")
         do i = nY, 1, -1  ! Escrevendo de cima para baixo, convenção MatLab
             do j = 1, nX
                 write(10, '(I4, I4, F10.5)') j, nY - i + 1, matriz(i, j)
