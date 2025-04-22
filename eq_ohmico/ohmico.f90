@@ -26,20 +26,21 @@ program ohmico
     do j = 1, nY
         do k = 1, nZ
             V(1,j,k) = 35.d0        
-            T(1,j,k) = 1.d0
+            T(1,j,k) = 25.d0
         end do
     end do
 
     ! Plano XZ
     do i = 1, nX
         do k = 1, nZ
-            T(i,1,k) = 1.d0         
+            T(i,1,k) = 25.d0         
         end do
     end do
 
     erro = 1.d0
     iter = 0
 
+    ! Adicionar transiência, variação de acordo com o tempo, plotar queda resíduo, adicionar cond contorno em V e T.
     do while (erro > tol .and. iter < max_iter) 
 
         erro = 0.d0
@@ -63,30 +64,45 @@ program ohmico
 
                     ! Matriz potencial elétrico
                     V(i,j,k) = ( &
-                        sigma_x_pos * V(i + 1,j,k) + sigma_x_ant * V(i - 1, j, k) + &
-                        sigma_y_pos * V(i, j + 1,k) + sigma_y_ant * V(i, j - 1,k) + &
+                        sigma_x_pos * V(i + 1, j, k) + sigma_x_ant * V(i - 1, j, k) + &
+                        sigma_y_pos * V(i, j + 1, k) + sigma_y_ant * V(i, j - 1,k) + &
                         sigma_z_pos * V(i, j, k + 1) + sigma_z_ant * V(i, j, k - 1) ) / &
                         (sigma_x_pos + sigma_x_ant + sigma_y_pos + sigma_y_ant + sigma_z_pos + sigma_z_ant)
-
-                    ! Matriz energia interna (efeito Joule)
-                    U(i, j, k) = eta * condutividade(T(i, j, k)) * ( &
-                        ((V(i + 1, j, k) - V(i - 1, j, k)) / (2.d0 * delta)) ** 2 + &
-                        ((V(i, j + 1, k) - V(i, j - 1, k)) / (2.d0 * delta)) ** 2 + &
-                        ((V(i, j, k + 1) - V(i, j, k - 1)) / (2.d0 * delta)) ** 2 )
-                    
-                    ! Novo valor temperatura
-                    T_new = T(i, j, k) + (dt / (rho * cP)) * &
-                        (k_mat * (T(i + 1, j, k) + T(i - 1, j, k) + &
-                            T(i, j + 1, k) + T(i, j - 1, k) + &
-                            T(i, j, k+1) + T(i, j, k - 1) - 6.d0 * T(i, j, k) &
-                        ) / (delta ** 2) + U(i, j, k))
-
-                    erro = max(erro, abs(T_new - T(i,j,k)))
-                    T(i, j, k) = T_new
                                 
                 end do 
             end do 
         end do 
+
+        do i = 2, nX - 1
+            do j = 2, nY - 1
+                do k = 2, nZ - 1
+
+                    U(i, j, k) = eta * condutividade(T(i, j, k)) * ( &
+                    ((V(i + 1, j, k) - V(i - 1, j, k)) / (2.d0 * delta)) ** 2 + &
+                    ((V(i, j + 1, k) - V(i, j - 1, k)) / (2.d0 * delta)) ** 2 + &
+                    ((V(i, j, k + 1) - V(i, j, k - 1)) / (2.d0 * delta)) ** 2 )
+                    
+                end do
+            end do 
+        end do 
+    
+        do i = 2, nX - 1
+            do j = 2, nY - 1
+                do k = 2, nZ - 1
+                    
+                    T_new = T(i, j, k) + (dt / (rho * cP)) * &
+                    (k_mat * (T(i + 1, j, k) + T(i - 1, j, k) + &
+                        T(i, j + 1, k) + T(i, j - 1, k) + &
+                        T(i, j, k+1) + T(i, j, k - 1) - 6.d0 * T(i, j, k) &
+                    ) / (delta ** 2) + U(i, j, k))
+    
+                    erro = max(erro, abs(T_new - T(i,j,k)))
+                    T(i, j, k) = T_new
+
+                end do 
+            end do 
+        end do 
+
     end do 
 
     print *,  "Algoritmo finalizado em", iter, "iterações"
